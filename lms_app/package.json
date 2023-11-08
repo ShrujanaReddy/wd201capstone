@@ -6,7 +6,9 @@
   "scripts": {
     "start": "nodemon -e js,ejs",
     "start:prod": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:create:test": "npx sequelize-cli db:create --env test",
+    "pretest": "npx sequelize-cli db:drop --env test && npx sequelize-cli db:create --env test",
+    "test": "jest --detectOpenHandles",
     "prepare": "cd .. && husky install lms_app/.husky"
   },
   "author": "",
