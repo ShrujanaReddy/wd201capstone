@@ -1,0 +1,11 @@
+<h3>Chapters</h3>
+<% for (var i=0; i < chapters.length; i++) { %>
+    <h4>
+        <%= chapters[i].title %>
+    </h4>
+    <a href="/educators/courses/<%= courseId %>/chapters/<%= chapters[i].id %>/pages" class="btn btn-primary">View
+        Pages</a>
+    <p>
+        <%= chapters[i].description %>
+    </p>
+    <% } %>

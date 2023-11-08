@@ -17,8 +17,8 @@ app.use(express.json())
 app.use(session({
     secret:"my-super-secret-key-2121323131312",
     cookie:{
-    maxAge:24*60*60*1000 //24hrs
-  }
+        maxAge:24*60*60*1000 //24hrs
+    }
 }))
 app.use(passport.initialize())
 app.use(passport.session())
@@ -86,8 +86,8 @@ app.use(express.static(path.join(__dirname,'public')))
 //View all courses
 app.get("/educators/courses",connectEnsureLogin.ensureLoggedIn(),async (req,res)=>{
     try {
-        const courses=await Course.getmyCourses(req.user.id)
-        return res.json(courses)
+        const allCourses=await Course.getmyCourses(req.user.id)
+        return res.render('courses',{allCourses})
     } catch(error) {
         console.log(error)
         return res.status(422).json(error)
@@ -95,58 +95,72 @@ app.get("/educators/courses",connectEnsureLogin.ensureLoggedIn(),async (req,res)
 })
 app.get('/createcourse',connectEnsureLogin.ensureLoggedIn(), (req, res) => {
     // Render the course creation page
-    res.render('createcourse.ejs');
+    res.render('createcourse.ejs')
 })
 app.get('/createchapter',connectEnsureLogin.ensureLoggedIn(), (req, res) => {
     // Render the course creation page
-    res.render('createchapter.ejs');
+    const course_id = req.query.course_id
+    res.render('createchapter.ejs',{course_id})
 })
 app.get('/createpage',connectEnsureLogin.ensureLoggedIn(), (req, res) => {
     // Render the course creation page
-    res.render('createpage.ejs');
+    const course_id = req.query.course_id
+    const chapter_id = req.params.chapter_id
+    res.render('createpage.ejs',{course_id,chapter_id})
 })
 //View the course chapters
-app.get("/educators/courses/:courseId/chapters",connectEnsureLogin.ensureLoggedIn(),async (req,res)=>{
+app.get("/educators/courses/:courseId/chapters", connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
     try {
-        const course = await Course.findByPk(req.params.courseId);
+        const courseId = req.params.courseId;
+
+        const course = await Course.findByPk(courseId);
         if (!course) {
             throw new Error('Course not found'); // Handle the case where the course doesn't exist
+        } else {
+            const chapters = await Chapter.getChapters(courseId);
+            const allCourses = await Course.getCourses()
+            //console.log(chapters)
+            // Render the "chapters.ejs" template to display chapters in a new page
+            res.render('chapters', { chapters,allCourses,courseId });
         }
-        else{
-        const chapters=await Chapter.getChapters(req.params.courseId)
-        return res.json(chapters)
-        }
-    } catch(error) {
-        console.log(error)
-        return res.status(422).json(error)
+    } catch (error) {
+        console.error(error);
+        return res.status(422).json(error);
     }
-})
+});
+
 //View pages in a chapter
-app.get("/educators/courses/:courseId/chapters/:chapterId/pages",connectEnsureLogin.ensureLoggedIn(),async (req,res)=>{
+app.get("/educators/courses/:courseId/chapters/:chapterId/pages", connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
     try {
-        const course = await Course.findByPk(req.params.courseId);
+        const courseId = req.params.courseId;
+        const chapterId = req.params.chapterId;
+
+        const course = await Course.findByPk(courseId);
         if (!course) {
             throw new Error('Course not found'); // Handle the case where the course doesn't exist
         }
-        const chapter = await Chapter.findByPk(req.params.chapterId);
+
+        const chapter = await Chapter.findByPk(chapterId);
         if (!chapter) {
-        throw new Error('Chapter not found');
+            throw new Error('Chapter not found');
+        } else {
+            const pages = await Page.getPages({ courseId, chapterId })
+            //console.log(pages)
+            // Render the "pages.ejs" template to display pages in a new page
+            res.render('pages', { pages })
         }
-        else{
-        const pages=await Page.getPages({courseId:req.params.courseId,chapterId:req.params.chapterId})
-        return res.json(pages)
-        }
-    } catch(error) {
-        console.log(error)
-        return res.status(422).json(error)
+    } catch (error) {
+        console.error(error);
+        return res.status(422).json(error);
     }
-})
+});
+
 // Create a new course
 app.post("/educators/courses/create",connectEnsureLogin.ensureLoggedIn(),async (req, res) => {
     // Handle course creation here
     try {
         const course=await Course.createCourse({title:req.body.title,description:req.body.description,educator_id:req.user.id})
-        return res.json(course)
+        res.redirect(`/educators/courses/${course.id}/chapters/create?course_id=${course.id}&educator_id=${req.user.id}`)
     } catch(error) {
         console.log(error)
         return res.status(422).json(error)
@@ -154,6 +168,14 @@ app.post("/educators/courses/create",connectEnsureLogin.ensureLoggedIn(),async (
 });
 
 // Add chapters to a course
+app.get('/educators/courses/:courseId/chapters/create', connectEnsureLogin.ensureLoggedIn(), (req, res) => {
+    // Get the course ID from the route parameters
+    const course_id = req.params.courseId;
+
+    // Render the "createchapter.ejs" template and pass the course_id
+    res.render('createchapter.ejs', { course_id });
+});
+
 app.post("/educators/courses/:courseId/chapters/create",connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
   try {
     const course = await Course.findByPk(req.params.courseId);
@@ -163,7 +185,7 @@ app.post("/educators/courses/:courseId/chapters/create",connectEnsureLogin.ensur
     }
 
     const chapter = await Chapter.addChap({ title: req.body.title, courseId: req.params.courseId });
-    return res.json(chapter);
+    res.redirect(`/educators/courses/${course.id}/chapters/${chapter.id}/pages/create?educator_id=${req.user.id}`)
   } catch (error) {
     console.error(error);
     return res.status(422).json({ error: error.message });
@@ -172,15 +194,28 @@ app.post("/educators/courses/:courseId/chapters/create",connectEnsureLogin.ensur
 
 
 // Add pages to a chapter in a course
+app.get('/educators/courses/:courseId/chapters/:chapterId/pages/create', connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
+    // Get course ID and chapter ID from route parameters
+    const courseId = req.params.courseId;
+    const chapterId = req.params.chapterId;
+    const course = await Course.findByPk(courseId);
+    const chapter = await Chapter.findByPk(chapterId);
+
+    // Render the "createpage.ejs" template and pass the course and chapter information
+    res.render('createpage.ejs', { courseTitle: course.title,
+        chapterTitle: chapter.title,courseId, chapterId});
+})
 app.post("/educators/courses/:courseId/chapters/:chapterId/pages/create",connectEnsureLogin.ensureLoggedIn(),async (req, res) => {
     // Handle adding pages here
     try {
-    const course = await Course.findByPk(req.params.courseId);
+        const courseId = req.params.courseId;
+        const chapterId = req.params.chapterId;
+    const course = await Course.findByPk(courseId);
     if (!course) {
       throw new Error('Course not found');
     }
 
-    const chapter = await Chapter.findByPk(req.params.chapterId);
+    const chapter = await Chapter.findByPk(chapterId);
     if (!chapter) {
       throw new Error('Chapter not found');
     }
@@ -188,16 +223,16 @@ app.post("/educators/courses/:courseId/chapters/:chapterId/pages/create",connect
     const page = await Page.addPage({
       title: req.body.title,
       content: req.body.content,
-      chapterId: req.params.chapterId,
-      courseId:req.params.courseId
-    });
-
-    return res.json(page);
+      chapterId,
+      courseId
+    })
+    const pages=await Page.getPages({courseId,chapterId})
+    return res.render("pages",{pages})
   } catch (error) {
-    console.error(error);
-    return res.status(422).json({ error: error.message });
+    console.error(error)
+    return res.status(422).json({ error: error.message })
   }
-});
+})
 
 // Student Routes
 //View all available courses
@@ -229,6 +264,8 @@ app.post("/users",async (req,res) => {
         res.redirect("/educator")
         else if(req.body.role==='student')
         res.redirect("/student")
+        else 
+        res.redirect("/")
     })
     } catch(error) {
         console.log(error)
@@ -240,7 +277,7 @@ app.get("/signup", (req, res) => {
 });
 
 // Returning students can log in
-app.get("/signin", (req, res) => {
+app.get("/login", (req, res) => {
     // Handle student login here
     res.render('signin')
 });

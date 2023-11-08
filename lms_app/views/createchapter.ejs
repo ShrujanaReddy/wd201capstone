@@ -10,12 +10,12 @@
 
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
     <h1 class="text-3xl font-semibold mb-6">Add a Chapter</h1>
-    <form action="/" method="POST" class="w-80">
+    <form action="/educators/courses/<%= course_id %>/chapters/create" method="POST" class="w-80">
         <div class="mb-4">
-            <label for="chapterTitle" class="block text-gray-700">Chapter Title:</label>
-            <input type="text" id="chapterTitle" name="chapterTitle" class="w-full border rounded p-2" required>
+            <label for="title" class="block text-gray-700">Chapter Title:</label>
+            <input type="text" id="title" name="title" class="w-full border rounded p-2" required>
         </div>
-        <input type="hidden" name="courseId" value="<%= courseId %>">
+        <input type="hidden" name="course_id" value="<%= course_id %>">
         <button type="submit" class="bg-blue-500 text-white rounded p-2 hover:bg-blue-700">Add Chapter</button>
     </form>
     <a href="/createpage" class="text-blue-600 hover:underline mt-4">Add Page</a>
