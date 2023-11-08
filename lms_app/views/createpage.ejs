@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>" />
     <title>Add Page</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
@@ -11,6 +12,7 @@
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
     <h1 class="text-3xl font-semibold mb-6">Add a Page to <%= chapterTitle %> (Course: <%= courseTitle %>)</h1>
     <form action="/educators/courses/<%= courseId %>/chapters/<%= chapterId %>/pages/create" method="POST" class="w-80">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="chapterId" value="<%= chapterId %>">
         <div class="mb-4">
             <label for="title" class="block text-gray-700">Page Title:</label>

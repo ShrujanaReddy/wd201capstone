@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const {Course,Chapter,Page,User}=require('./models')
+const {Course,Chapter,Page,User,Enrollment}=require('./models')
 const path=require('path')
 const bodyParser=require('body-parser')
 const passport=require('passport')
@@ -8,11 +8,15 @@ const connectEnsureLogin=require('connect-ensure-login')
 const session=require('express-session')
 const LocalStrategy=require('passport-local')
 const bcrypt=require('bcrypt')
+var cookieParser=require("cookie-parser")
+var csrf=require("csurf")
 
 app.set("view engine","ejs")
 app.use(express.urlencoded({extended:false}))
 app.use(bodyParser.json())
 app.use(express.json())
+app.use(cookieParser("ssh! some secret string"))
+app.use(csrf({cookie:true}))
 
 app.use(session({
     secret:"my-super-secret-key-2121323131312",
@@ -55,7 +59,9 @@ passport.deserializeUser((id,done)=>{
 app.get("/",async (req,res) => {
     const allCourses=await Course.getCourses()
     if(req.accepts("html")) {
-        res.render('index')
+        res.render('index',{
+            csrfToken:req.csrfToken()
+        })
     } else {
         res.json(allCourses)
     }
@@ -64,22 +70,40 @@ app.get("/educator",connectEnsureLogin.ensureLoggedIn(),async (req,res)=>{
     const allCourses=await Course.getCourses()
     if(req.accepts("html")) {
         res.render('educator',{
-            allCourses
+            allCourses,
+            csrfToken:req.csrfToken()
         })
     } else {
         res.json(allCourses)
     }
 })
-app.get("/student",connectEnsureLogin.ensureLoggedIn(),async (req,res)=>{
-    const allCourses=await Course.getCourses()
-    if(req.accepts("html")) {
-        res.render('student',{
-            allCourses
-        })
-    } else {
-        res.json(allCourses)
+app.get("/student", connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
+    const studentId = req.user.id;
+    try {
+        const allCourses=await Course.getCourses()
+        // Fetch the enrolled courses for the student, including the Course model with alias 'course'
+        const enrolledCourses = await Enrollment.findAll({
+            where: {
+                studentId: studentId,
+            },
+            include: [{ model: Course, as: 'course' }], // Specify the alias 'course'
+        });
+
+        if (req.accepts("html")) {
+            res.render('student', {
+                allCourses,
+                enrolledCourses,
+                csrfToken: req.csrfToken()
+            });
+        } else {
+            res.json(enrolledCourses);
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(422).json(error);
     }
 })
+
 app.use(express.static(path.join(__dirname,'public')))
 // Educator Routes
 
@@ -87,7 +111,7 @@ app.use(express.static(path.join(__dirname,'public')))
 app.get("/educators/courses",connectEnsureLogin.ensureLoggedIn(),async (req,res)=>{
     try {
         const allCourses=await Course.getmyCourses(req.user.id)
-        return res.render('courses',{allCourses})
+        return res.render('courses',{allCourses,csrfToken:req.csrfToken()})
     } catch(error) {
         console.log(error)
         return res.status(422).json(error)
@@ -95,18 +119,18 @@ app.get("/educators/courses",connectEnsureLogin.ensureLoggedIn(),async (req,res)
 })
 app.get('/createcourse',connectEnsureLogin.ensureLoggedIn(), (req, res) => {
     // Render the course creation page
-    res.render('createcourse.ejs')
+    res.render('createcourse.ejs',{csrfToken:req.csrfToken()})
 })
 app.get('/createchapter',connectEnsureLogin.ensureLoggedIn(), (req, res) => {
     // Render the course creation page
     const course_id = req.query.course_id
-    res.render('createchapter.ejs',{course_id})
+    res.render('createchapter.ejs',{course_id,csrfToken:req.csrfToken()})
 })
 app.get('/createpage',connectEnsureLogin.ensureLoggedIn(), (req, res) => {
     // Render the course creation page
     const course_id = req.query.course_id
     const chapter_id = req.params.chapter_id
-    res.render('createpage.ejs',{course_id,chapter_id})
+    res.render('createpage.ejs',{course_id,chapter_id,csrfToken:req.csrfToken()})
 })
 //View the course chapters
 app.get("/educators/courses/:courseId/chapters", connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
@@ -121,7 +145,7 @@ app.get("/educators/courses/:courseId/chapters", connectEnsureLogin.ensureLogged
             const allCourses = await Course.getCourses()
             //console.log(chapters)
             // Render the "chapters.ejs" template to display chapters in a new page
-            res.render('chapters', { chapters,allCourses,courseId });
+            res.render('chapters', { chapters,allCourses,courseId,csrfToken:req.csrfToken()});
         }
     } catch (error) {
         console.error(error);
@@ -147,7 +171,7 @@ app.get("/educators/courses/:courseId/chapters/:chapterId/pages", connectEnsureL
             const pages = await Page.getPages({ courseId, chapterId })
             //console.log(pages)
             // Render the "pages.ejs" template to display pages in a new page
-            res.render('pages', { pages })
+            res.render('pages', { pages,csrfToken:req.csrfToken()})
         }
     } catch (error) {
         console.error(error);
@@ -173,7 +197,7 @@ app.get('/educators/courses/:courseId/chapters/create', connectEnsureLogin.ensur
     const course_id = req.params.courseId;
 
     // Render the "createchapter.ejs" template and pass the course_id
-    res.render('createchapter.ejs', { course_id });
+    res.render('createchapter.ejs', { course_id,csrfToken:req.csrfToken()});
 });
 
 app.post("/educators/courses/:courseId/chapters/create",connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
@@ -203,7 +227,7 @@ app.get('/educators/courses/:courseId/chapters/:chapterId/pages/create', connect
 
     // Render the "createpage.ejs" template and pass the course and chapter information
     res.render('createpage.ejs', { courseTitle: course.title,
-        chapterTitle: chapter.title,courseId, chapterId});
+        chapterTitle: chapter.title,courseId, chapterId,csrfToken:req.csrfToken()});
 })
 app.post("/educators/courses/:courseId/chapters/:chapterId/pages/create",connectEnsureLogin.ensureLoggedIn(),async (req, res) => {
     // Handle adding pages here
@@ -227,7 +251,7 @@ app.post("/educators/courses/:courseId/chapters/:chapterId/pages/create",connect
       courseId
     })
     const pages=await Page.getPages({courseId,chapterId})
-    return res.render("pages",{pages})
+    return res.render("pages",{pages,csrfToken:req.csrfToken()})
   } catch (error) {
     console.error(error)
     return res.status(422).json({ error: error.message })
@@ -235,16 +259,6 @@ app.post("/educators/courses/:courseId/chapters/:chapterId/pages/create",connect
 })
 
 // Student Routes
-//View all available courses
-app.get("/students/courses",connectEnsureLogin.ensureLoggedIn(),async (req,res)=>{
-    try {
-        const courses=await Course.getCourses()
-        return res.json(courses)
-    } catch(error) {
-        console.log(error)
-        return res.status(422).json(error)
-    }
-})
 // New students can sign up
 app.post("/users",async (req,res) => {
     //console.log(req.body)
@@ -273,13 +287,13 @@ app.post("/users",async (req,res) => {
 })
 app.get("/signup", (req, res) => {
     // Handle student signup here
-    res.render('signup')
+    res.render('signup',{csrfToken:req.csrfToken()})
 });
 
 // Returning students can log in
 app.get("/login", (req, res) => {
     // Handle student login here
-    res.render('signin')
+    res.render('signin',{csrfToken:req.csrfToken()})
 });
 
 app.post("/session",passport.authenticate('local',{failureRedirect:"/signup"}),(req,res)=>{
@@ -302,26 +316,93 @@ app.get("/signout", (req, res, next) => {
 // Course Enrollment Routes
 
 // Enroll in a course
-app.post("/students/enroll/:courseId",connectEnsureLogin.ensureLoggedIn(), (request, response) => {
-    // Handle course enrollment here
-});
+app.post("/students/enroll/:courseId", connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+        const studentId = req.user.id; // Get the student's user ID from the logged-in user
+
+        // Check if the student is already enrolled in this course
+        const existingEnrollment = await Enrollment.findOne({
+            where: {
+                courseId: courseId,
+                studentId: studentId,
+            },
+        });
+
+        if (existingEnrollment) {
+            // The student is already enrolled, you can handle this as needed
+            return res.status(400).json({ message: 'Student is already enrolled in this course' });
+        }
+
+        // Create a new enrollment record for the student
+        const enrollment = await Enrollment.create({
+            courseId: courseId,
+            studentId: studentId,
+        });
+
+        res.redirect(`/students/${courseId}/chapters`);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
 
 // Get the list of chapters in a course before enrolling
-app.get("/students/courses/:courseId/chapters",connectEnsureLogin.ensureLoggedIn(),async (req, res) => {
-    // Handle getting chapter list here
+// View chapters
+app.get('/students/:courseId/chapters', connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
     try {
-    const course = await Course.findByPk(req.params.courseId);
+        const courseId = req.params.courseId;
+        const userId = req.user.id; // Get the user's ID from the logged-in session
 
-    if (!course) {
-      throw new Error('Course not found'); // Handle the case where the course doesn't exist
+        // Check if the user is enrolled in the course with the given courseId
+        const isEnrolled = await Enrollment.findOne({
+            where: {
+                studentId: userId,
+                courseId: courseId,
+            },
+        });
+
+        if (isEnrolled) {
+            // If the user is enrolled, fetch the chapters for the course and render the chapters page
+            const chapters = await Chapter.getChapters({ courseId });
+            res.render('stu_chapters', { chapters, courseId, userIsEnrolled: true, csrfToken: req.csrfToken() });
+        } else {
+            // If the user is not enrolled
+            res.render('stu_chapters', { courseId, userIsEnrolled: false, csrfToken: req.csrfToken() });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(422).json(error);
     }
+});
 
-    const chapter = await Chapter.addChap({ title: req.body.title, courseId: req.params.courseId });
-    return res.json(chapter);
-  } catch (error) {
-    console.error(error);
-    return res.status(422).json({ error: error.message });
-  }
+// View pages
+app.get('/students/:courseId/chapters/:chapterId/pages', connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+        const chapterId = req.params.chapterId;
+        const userId = req.user.id; // Get the user's ID from the logged-in session
+
+        // Check if the user is enrolled in the course with the given courseId
+        const isEnrolled = await Enrollment.findOne({
+            where: {
+                studentId: userId,
+                courseId: courseId,
+            },
+        });
+
+        if (isEnrolled) {
+            // If the user is enrolled, fetch the pages for the chapter and render the pages page
+            const pages = await Page.getPages({ courseId, chapterId });
+            res.render('pages', { pages, courseId, chapterId, userIsEnrolled: true, csrfToken: req.csrfToken() });
+        } else {
+            // If the user is not enrolled
+            res.render('stu_chapters', { courseId, userIsEnrolled: false, csrfToken: req.csrfToken() });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(422).json(error);
+    }
 });
 
 // Student Dashboard Routes
@@ -332,7 +413,7 @@ app.get("/students/courses",connectEnsureLogin.ensureLoggedIn(), (request, respo
 });
 
 // Allow students to mark pages as complete
-app.post("/students/courses/:courseId/pages/:pageId/mark-complete",connectEnsureLogin.ensureLoggedIn(), (request, response) => {
+app.post("/students/courses/:courseId/mark-complete",connectEnsureLogin.ensureLoggedIn(), (request, response) => {
     // Handle marking pages as complete here
 });
 

@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <meta name="csrf-token" content="<%= csrfToken %>" />
     <title>Sign Up</title>
 </head>
 
@@ -9,6 +10,7 @@
     <%- include('header.ejs') %>
     <h1>Sign Up</h1>
     <form method="post" action="/users">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <label for="name">Name:</label>
         <input type="text" name="name" id="name" required><br><br>
 

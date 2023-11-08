@@ -11,6 +11,7 @@
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
     <h1 class="text-3xl font-semibold mb-6">Add a Chapter</h1>
     <form action="/educators/courses/<%= course_id %>/chapters/create" method="POST" class="w-80">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div class="mb-4">
             <label for="title" class="block text-gray-700">Chapter Title:</label>
             <input type="text" id="title" name="title" class="w-full border rounded p-2" required>

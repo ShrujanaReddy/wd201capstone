@@ -10,6 +10,7 @@
     <div class="min-h-screen flex flex-col items-center justify-center">
         <h1 class="text-4xl mb-6">Create a Course</h1>
         <form action="/educators/courses/create" method="POST" class="mb-4">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <label for="title" class="block mb-2">Course Title:</label>
             <input type="text" id="title" name="title" class="border rounded p-2" required>
             <label for="description" class="block mb-2">Course Description:</label>

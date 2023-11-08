@@ -1,12 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>" />
     <title>Student Home</title>
 </head>
+
 <body>
     <a href="/signout" class="text-blue-600 hover:underline mb-2">Sign out</a>
-    <%- include('courses.ejs') %>
+    <h3>Enrolled Courses</h3>
+    <% for (var i=0; i < enrolledCourses.length; i++) { %>
+        <h4>
+            <%= allCourses.find(course=> course.id === enrolledCourses[i].courseId).title %>
+        </h4>
+        <p>
+            <%= allCourses.find(course=> course.id === enrolledCourses[i].courseId).description %>
+        </p>
+        <a href="/students/<%= enrolledCourses[i].courseId %>/chapters" class="btn btn-primary">View Chapters</a>
+        <hr>
+        <% } %>
+            <h3>Available Courses</h3>
+            <% for (var i=0; i < allCourses.length; i++) { %>
+                <h4>
+                    <%= allCourses[i].title %>
+                </h4>
+                <p>
+                    <%= allCourses[i].description %>
+                </p>
+                <a href="/students/<%= allCourses[i].id %>/chapters" class="btn btn-primary">View
+                    Chapters</a>
+                <form method="POST" action="/students/enroll/<%= allCourses[i].id %>">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn btn-success">Enroll</button>
+                </form>
+                <hr>
+                <% } %>
 </body>
+
 </html>
