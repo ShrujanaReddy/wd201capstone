@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Chapter</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <h1 class="text-3xl font-semibold mb-6">Add a Chapter</h1>
+    <form action="/" method="POST" class="w-80">
+        <div class="mb-4">
+            <label for="chapterTitle" class="block text-gray-700">Chapter Title:</label>
+            <input type="text" id="chapterTitle" name="chapterTitle" class="w-full border rounded p-2" required>
+        </div>
+        <input type="hidden" name="courseId" value="<%= courseId %>">
+        <button type="submit" class="bg-blue-500 text-white rounded p-2 hover:bg-blue-700">Add Chapter</button>
+    </form>
+    <a href="/createpage" class="text-blue-600 hover:underline mt-4">Add Page</a>
+</body>
+
+</html>

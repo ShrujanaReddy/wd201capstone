@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <h1 class="text-3xl font-semibold mb-6">Add a Page to <%= chapterTitle %> (Course: <%= courseTitle %>)</h1>
+    <form action="/page" method="POST" class="w-80">
+        <input type="hidden" name="chapterId" value="<%= chapterId %>">
+        <div class="mb-4">
+            <label for="pageTitle" class="block text-gray-700">Page Title:</label>
+            <input type="text" id="pageTitle" name="pageTitle" class="w-full border rounded p-2" required>
+        </div>
+        <div class="mb-4">
+            <label for="pageContent" class="block text-gray-700">Page Content:</label>
+            <textarea id="pageContent" name="pageContent" class="w-full border rounded p-2" required
+                rows="4"></textarea>
+        </div>
+        <button type="submit" class="bg-blue-500 text-white rounded p-2 hover:bg-blue-700">Add Page</button>
+    </form>
+</body>
+
+</html>

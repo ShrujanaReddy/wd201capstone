@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Create a Course</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+
+<body>
+    <div class="min-h-screen flex flex-col items-center justify-center">
+        <h1 class="text-4xl mb-6">Create a Course</h1>
+        <form action="/educators/courses/create" method="POST" class="mb-4">
+            <label for="title" class="block mb-2">Course Title:</label>
+            <input type="text" id="title" name="title" class="border rounded p-2" required>
+            <label for="description" class="block mb-2">Course Description:</label>
+            <input type="text" id="description" name="description" class="border rounded p-2" required>
+            <button type="submit" class="mt-2 bg-blue-500 text-white rounded p-2 hover:bg-blue-700">Create
+                Course</button>
+        </form>
+        <a href="/createchapter" class="text-blue-600 hover:underline">Add Chapter</a>
+    </div>
+</body>
+
+</html>

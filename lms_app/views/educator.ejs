@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Home</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+
+<body>
+    <div class="min-h-screen flex flex-col items-center justify-center">
+        <h1 class="text-4xl mb-6">Educator Home</h1>
+        <a href="/signout" class="text-blue-600 hover:underline mb-2">Sign out</a>
+        <a href="/createcourse" class="text-blue-600 hover:underline mb-2">Create a Course</a>
+        <a href="/courses" class="text-blue-600 hover:underline">My Courses</a>
+    </div>
+    <div>
+        <%- include('courses.ejs') %>
+    </div>
+</body>
+
+</html>
