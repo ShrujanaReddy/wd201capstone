@@ -1,4 +1,6 @@
+<%- include('header.ejs') %>
 <h3>Chapters</h3>
+<% var viewPagesLinkRendered=false; %>
 <% for (var i=0; i < chapters.length; i++) { %>
     <h4>
         <%= chapters[i].title %>
@@ -6,8 +8,10 @@
     <p>
         <%= chapters[i].description %>
     </p>
-    <% if (userIsEnrolled) { %>
-        <a href="/students/<%= courseId %>/chapters/<%= chapters[i].id %>/pages" class="btn btn-primary">View
-            Pages</a>
     <% } %>
+
+        <% if (userIsEnrolled && !viewPagesLinkRendered) { %>
+            <a href="/students/<%= courseId %>/chapters/<%= chapters[0].id %>/pages" class="btn btn-primary">View
+                Pages</a>
+        <% viewPagesLinkRendered=true; %>
 <% } %>

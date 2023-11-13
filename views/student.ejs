@@ -9,6 +9,7 @@
 </head>
 
 <body>
+    <%- include('header.ejs') %>
     <a href="/signout" class="text-blue-600 hover:underline mb-2">Sign out</a>
     <h3>Enrolled Courses</h3>
     <% for (var i=0; i < enrolledCourses.length; i++) { %>
@@ -20,23 +21,23 @@
         </p>
         <a href="/students/<%= enrolledCourses[i].courseId %>/chapters" class="btn btn-primary">View Chapters</a>
         <hr>
-        <% } %>
-            <h3>Available Courses</h3>
-            <% for (var i=0; i < allCourses.length; i++) { %>
-                <h4>
-                    <%= allCourses[i].title %>
-                </h4>
-                <p>
-                    <%= allCourses[i].description %>
-                </p>
-                <a href="/students/<%= allCourses[i].id %>/chapters" class="btn btn-primary">View
-                    Chapters</a>
-                <form method="POST" action="/students/enroll/<%= allCourses[i].id %>">
-                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                    <button type="submit" class="btn btn-success">Enroll</button>
-                </form>
-                <hr>
-                <% } %>
+    <% } %>
+        <h3>Available Courses</h3>
+        <% for (var i=0; i < notEnrolledCourses.length; i++) { %>
+        <h4>
+            <%= notEnrolledCourses[i].title %>
+        </h4>
+        <p>
+            <%= notEnrolledCourses[i].description %>
+        </p>
+        <a href="/students/<%= notEnrolledCourses[i].id %>/chapters" class="btn btn-primary">View Chapters</a>
+        <form method="POST" action="/students/enroll/<%= notEnrolledCourses[i].id %>">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn btn-success">Enroll</button>
+        </form>
+        <hr>
+    <% } %>
+
 </body>
 
 </html>

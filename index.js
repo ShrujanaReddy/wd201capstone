@@ -80,23 +80,32 @@ app.get("/educator",connectEnsureLogin.ensureLoggedIn(),async (req,res)=>{
 app.get("/student", connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
     const studentId = req.user.id;
     try {
-        const allCourses=await Course.getCourses()
-        // Fetch the enrolled courses for the student, including the Course model with alias 'course'
+        // Fetch all courses
+        const allCourses = await Course.getCourses();
+
+        // Fetch enrolled courses for the student
         const enrolledCourses = await Enrollment.findAll({
             where: {
                 studentId: studentId,
             },
-            include: [{ model: Course, as: 'course' }], // Specify the alias 'course'
+            include: [{ model: Course, as: 'course' }],
         });
+
+        // Extract courseIds of enrolled courses
+        const enrolledCourseIds = enrolledCourses.map(enrollment => enrollment.course.id);
+
+        // Filter not enrolled courses
+        const notEnrolledCourses = allCourses.filter(course => !enrolledCourseIds.includes(course.id));
 
         if (req.accepts("html")) {
             res.render('student', {
                 allCourses,
+                notEnrolledCourses,
                 enrolledCourses,
                 csrfToken: req.csrfToken()
             });
         } else {
-            res.json(enrolledCourses);
+            res.json(notEnrolledCourses);
         }
     } catch (error) {
         console.log(error);
@@ -340,7 +349,7 @@ app.post("/students/enroll/:courseId", connectEnsureLogin.ensureLoggedIn(), asyn
             studentId: studentId,
         });
 
-        res.redirect(`/students/${courseId}/chapters`);
+        res.redirect('/students');
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Internal Server Error' });
@@ -360,21 +369,20 @@ app.get('/students/:courseId/chapters', connectEnsureLogin.ensureLoggedIn(), asy
                 studentId: userId,
                 courseId: courseId,
             },
-        });
-
+        })
+        const chapters = await Chapter.getChapters(courseId);
         if (isEnrolled) {
             // If the user is enrolled, fetch the chapters for the course and render the chapters page
-            const chapters = await Chapter.getChapters({ courseId });
             res.render('stu_chapters', { chapters, courseId, userIsEnrolled: true, csrfToken: req.csrfToken() });
         } else {
             // If the user is not enrolled
-            res.render('stu_chapters', { courseId, userIsEnrolled: false, csrfToken: req.csrfToken() });
+            res.render('stu_chapters', { chapters,courseId, userIsEnrolled: false, csrfToken: req.csrfToken() });
         }
     } catch (error) {
         console.error(error);
         return res.status(422).json(error);
     }
-});
+})
 
 // View pages
 app.get('/students/:courseId/chapters/:chapterId/pages', connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
@@ -403,7 +411,7 @@ app.get('/students/:courseId/chapters/:chapterId/pages', connectEnsureLogin.ensu
         console.error(error);
         return res.status(422).json(error);
     }
-});
+})
 
 // Student Dashboard Routes
 

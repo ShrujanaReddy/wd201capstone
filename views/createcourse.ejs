@@ -7,6 +7,7 @@
 </head>
 
 <body>
+    <%- include('header.ejs') %>
     <div class="min-h-screen flex flex-col items-center justify-center">
         <h1 class="text-4xl mb-6">Create a Course</h1>
         <form action="/educators/courses/create" method="POST" class="mb-4">
@@ -18,7 +19,7 @@
             <button type="submit" class="mt-2 bg-blue-500 text-white rounded p-2 hover:bg-blue-700">Create
                 Course</button>
         </form>
-        <a href="/createchapter" class="text-blue-600 hover:underline">Add Chapter</a>
+        <!-- <a href="/createchapter" class="text-blue-600 hover:underline">Add Chapter</a> -->
     </div>
 </body>
 

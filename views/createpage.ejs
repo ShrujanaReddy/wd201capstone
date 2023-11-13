@@ -10,6 +10,7 @@
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <%- include('header.ejs') %>
     <h1 class="text-3xl font-semibold mb-6">Add a Page to <%= chapterTitle %> (Course: <%= courseTitle %>)</h1>
     <form action="/educators/courses/<%= courseId %>/chapters/<%= chapterId %>/pages/create" method="POST" class="w-80">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
