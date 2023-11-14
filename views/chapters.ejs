@@ -1,19 +1,18 @@
 <%- include('header.ejs') %>
-<h3>Chapters</h3>
-<% var viewPagesRendered=false; %>
-<% for (var i=0; i < chapters.length; i++) { %>
-    <h4>
-        <%= chapters[i].title %>
-    </h4>
+    <h3>Chapters</h3>
+    <% var viewPagesRendered=false; %>
+        <% for (var i=0; i < chapters.length; i++) { %>
+            <h4>
+                <%= chapters[i].title %>
+            </h4>
 
-    <a href="/educators/courses/<%= courseId %>/chapters/<%= chapters[i].id %>/pages" class="btn btn-primary">View
-        Pages</a>
+            <a href="/educators/courses/<%= courseId %>/chapters/<%= chapters[i].id %>/pages"
+                class="btn btn-primary">View Pages</a>
 
-    <% if (!viewPagesRendered) { %>
-        <a href="/createpage" class="text-blue-600 hover:underline mt-4">Add Page</a>
-        <% viewPagesRendered=true; %>
-    <% } %>
-        <p>
-            <%= chapters[i].description %>
-        </p>
-<% } %>
+            <% if (!viewPagesRendered) { %>
+                <a href="/createpage" class="text-blue-600 hover:underline mt-4">Add Page</a>
+                <% viewPagesRendered=true; %>
+            <% } %>
+            <p><%= chapters[i].description %></p>
+            <% } %>
+        <% } %>

@@ -33,6 +33,14 @@ module.exports = (sequelize, DataTypes) => {
     static createCourse({title,description,educator_id}) {
       return this.create({title:title,description:description,educator_id})
     }
+    static async getEducatorCourses(educatorId) {
+    const educatorCourses = await Course.findAll({
+        where: {
+            educator_id: educatorId
+        }
+    })
+    return educatorCourses
+}
   }
   Course.init({
     title: DataTypes.STRING,

@@ -120,7 +120,8 @@ app.use(express.static(path.join(__dirname,'public')))
 app.get("/educators/courses",connectEnsureLogin.ensureLoggedIn(),async (req,res)=>{
     try {
         const allCourses=await Course.getmyCourses(req.user.id)
-        return res.render('courses',{allCourses,csrfToken:req.csrfToken()})
+        const educatorCourses = await Course.getEducatorCourses(req.user.id);
+        return res.render('courses',{allCourses,educatorCourses,csrfToken:req.csrfToken()})
     } catch(error) {
         console.log(error)
         return res.status(422).json(error)
@@ -344,15 +345,20 @@ app.post("/students/enroll/:courseId", connectEnsureLogin.ensureLoggedIn(), asyn
         }
 
         // Create a new enrollment record for the student
-        const enrollment = await Enrollment.create({
+      const chapters = await Chapter.findAll({
+        where: {
+          courseId: courseId,
+        },
+      })
+        const enrollment = await Enrollment.enrollStudent({
             courseId: courseId,
             studentId: studentId,
-        });
-
-        res.redirect('/students');
+            chapters:chapters
+        })
+        res.redirect('/student')
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        console.error(error)
+        return res.status(500).json({ error: 'Internal Server Error' })
     }
 })
 
@@ -363,24 +369,47 @@ app.get('/students/:courseId/chapters', connectEnsureLogin.ensureLoggedIn(), asy
         const courseId = req.params.courseId;
         const userId = req.user.id; // Get the user's ID from the logged-in session
 
-        // Check if the user is enrolled in the course with the given courseId
-        const isEnrolled = await Enrollment.findOne({
+        // Fetch the chapters for the course
+        const chapters = await Chapter.getChapters(courseId);
+
+        // Fetch completed chapters for the user in the course
+        const completedEnrollments = await Enrollment.findAll({
             where: {
                 studentId: userId,
                 courseId: courseId,
+                completed: true,
+            },
+        });
+        const completedChaptersCount = await Enrollment.count({
+            where: {
+                courseId: courseId,
+                studentId: userId,
+                completed: true, // Filter by completed chapters
+            },
+        });
+
+        // Fetch the total number of chapters in the course (for reference)
+        const totalChaptersCount = await Enrollment.count({
+            where: {
+                courseId: courseId,
             },
         })
-        const chapters = await Chapter.getChapters(courseId);
-        if (isEnrolled) {
-            // If the user is enrolled, fetch the chapters for the course and render the chapters page
-            res.render('stu_chapters', { chapters, courseId, userIsEnrolled: true, csrfToken: req.csrfToken() });
-        } else {
-            // If the user is not enrolled
-            res.render('stu_chapters', { chapters,courseId, userIsEnrolled: false, csrfToken: req.csrfToken() });
-        }
+        const progressPercentage = (completedChaptersCount / totalChaptersCount) * 100;
+
+        // Render the chapters page
+        res.render('stu_chapters', {
+            chapters,
+            courseId,
+            userIsEnrolled: true, // Assuming enrolled to view the chapters
+            completedEnrollments,
+            totalChaptersCount: totalChaptersCount,
+            completedChaptersCount: completedChaptersCount,
+            progressPercentage: progressPercentage,
+            csrfToken: req.csrfToken(),
+        });
     } catch (error) {
         console.error(error);
-        return res.status(422).json(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 })
 
@@ -421,17 +450,83 @@ app.get("/students/courses",connectEnsureLogin.ensureLoggedIn(), (request, respo
 });
 
 // Allow students to mark pages as complete
-app.post("/students/courses/:courseId/mark-complete",connectEnsureLogin.ensureLoggedIn(), (request, response) => {
-    // Handle marking pages as complete here
-});
+app.post("/students/:courseId/mark-complete", connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+        const studentId = req.user.id;
+        // Check if the student is enrolled in this course
+        const enrollment = await Enrollment.findOne({
+            where: {
+                courseId: courseId,
+                studentId: studentId,
+            },
+        })
+        if (!enrollment) {
+            // The student is not enrolled in this course
+            return res.status(400).json({ message: 'Student is not enrolled in this course' });
+        }
+        const chapterId = req.body.chapterId
+        if (!chapterId) {
+            return res.status(400).json({ message: 'ChapterId is required to mark as complete' });
+        }
+        // Check if the chapter is part of the enrolled course
+        const isChapterInCourse = await Chapter.findOne({
+            where: {
+                courseId: courseId,
+                id: chapterId,
+            },
+        })
+        if (!isChapterInCourse) {
+            return res.status(400).json({ message: 'Chapter is not part of the enrolled course' });
+        }
+        // Update the enrollment record to mark the chapter as complete
+        await Enrollment.markComplete({courseId:courseId,studentId:studentId,chapterId:chapterId})
+        res.redirect(`/students/${courseId}/chapters`)
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
 
 // Progress Tracking Routes
 
 // Show the progress status, possibly as a completion percentage
-app.get("/students/courses/:courseId/progress",connectEnsureLogin.ensureLoggedIn(), (request, response) => {
+app.get("/students/courses/:courseId/progress",connectEnsureLogin.ensureLoggedIn(),async (request, response) => {
     // Handle progress tracking here
-});
+    try {
+        const courseId = request.params.courseId;
+        const userId = request.user.id; // Assuming you can access the user's ID from the session
+
+        // Calculate the number of completed chapters for the user in the specified course
+        const completedChaptersCount = await Enrollment.count({
+            where: {
+                courseId: courseId,
+                studentId: userId,
+                completed: true, // Filter by completed chapters
+            },
+        });
+
+        // Fetch the total number of chapters in the course (for reference)
+        const totalChaptersCount = await Enrollment.count({
+            where: {
+                courseId: courseId,
+            },
+        })
+        const progressPercentage = (completedChaptersCount / totalChaptersCount) * 100;
+
+        response.render('progress', {
+            courseId: courseId,
+            totalChaptersCount: totalChaptersCount,
+            completedChaptersCount: completedChaptersCount,
+            progressPercentage: progressPercentage,
+        });
+    } catch (error) {
+        console.error(error);
+        response.status(500).send("Internal Server Error");
+    }
+})
 
 app.listen(3000, () => {
     console.log("Started express server at port 3000");
-});
+})

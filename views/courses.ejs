@@ -3,10 +3,10 @@
 <a href="/createcourse" class="text-blue-600 hover:underline mb-2">Create a Course</a>
 <% for(var i=0;i<allCourses.length;i++) { %>
     <h4>
-        <%= allCourses[i].title %>
+        <%= educatorCourses[i].title %>
     </h4>
     <p>
-        <%= allCourses[i].description %>
+        <%= educatorCourses[i].description %>
     </p>
     <a href="/educators/courses/<%= allCourses[i].id %>/chapters" class="btn btn-primary">View Chapters</a>
     <a href="/createchapter" class="text-blue-600 hover:underline">Add Chapter</a>

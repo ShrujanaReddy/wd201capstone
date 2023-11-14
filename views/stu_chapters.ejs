@@ -1,17 +1,37 @@
 <%- include('header.ejs') %>
-<h3>Chapters</h3>
-<% var viewPagesLinkRendered=false; %>
-<% for (var i=0; i < chapters.length; i++) { %>
-    <h4>
-        <%= chapters[i].title %>
-    </h4>
-    <p>
-        <%= chapters[i].description %>
-    </p>
-    <% } %>
+    <h3>Chapters</h3>
+    <% var viewPagesLinkRendered=false; %>
+        <% for (var i=0; i < chapters.length; i++) { %>
+            <h4>
+                <%= chapters[i].title %>
+            </h4>
+            <p>
+                <%= chapters[i].description %>
+            </p>
 
-        <% if (userIsEnrolled && !viewPagesLinkRendered) { %>
-            <a href="/students/<%= courseId %>/chapters/<%= chapters[0].id %>/pages" class="btn btn-primary">View
-                Pages</a>
-        <% viewPagesLinkRendered=true; %>
-<% } %>
+            <% if (userIsEnrolled && !viewPagesLinkRendered) { %>
+                <a href="/students/<%= courseId %>/chapters/<%= chapters[i].id %>/pages" class="btn btn-primary">View
+                    Pages</a>
+
+                <% const enrollment=completedEnrollments.find(enrollment=> enrollment.chapterId === chapters[i].id); %>
+
+                    <% if (enrollment) { %>
+                        <!-- Display a label if the chapter is already completed -->
+                        <span class="text-success">Completed</span>
+                        <% } else { %>
+                            <!-- Display the "Mark as Complete" button if the chapter is not completed -->
+                            <form action="/students/<%= courseId %>/mark-complete" method="post" class="mt-2">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="hidden" name="chapterId" value="<%= chapters[i].id %>">
+                                <button type="submit" class="btn btn-success">Mark as Complete</button>
+                            </form>
+                    <% } %>
+                    <h3>Course Progress</h3>
+                    <p>Total Chapters: <%= totalChaptersCount %>
+                    </p>
+                    <p>Completed Chapters: <%= completedChaptersCount %>
+                    </p>
+                    <p>Progress: <%= progressPercentage.toFixed(2) %>%</p>
+            <% viewPagesLinkRendered=true; %>
+            <% } %>
+    <% } %>
