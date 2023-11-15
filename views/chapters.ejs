@@ -1,21 +1,43 @@
 <%- include('header.ejs') %>
-    <h3>Chapters</h3>
+    <!DOCTYPE html>
+    <html lang="en">
 
-    <% var viewPagesRendered=false; %>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chapters</title>
+        <!-- Linking Tailwind CSS from CDN -->
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </head>
 
-        <% for (var i=0; i < chapters.length; i++) { %>
-            <h4>
-                <%= chapters[i].title %>
-            </h4>
+    <body class="bg-gray-100">
+        <div class="container mx-auto px-4 py-8">
+            <h3 class="text-2xl font-bold mb-4">Chapters</h3>
 
-            <a href="/educators/courses/<%= courseId %>/chapters/<%= chapters[i].id %>/pages"
-                class="btn btn-primary">View Pages</a>
+            <% var viewPagesRendered=false; %>
 
-            <form action="/educators/courses/<%= courseId %>/chapters/<%= chapters[i].id %>/pages/create" method="GET">
-                <button>Add Page</button>
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            </form>
-                        <p>
-                            <%= chapters[i].description %>
-                        </p>
-                        <% } %>
+                <% for (var i=0; i < chapters.length; i++) { %>
+                    <div class="bg-white rounded-lg shadow-md mb-6 p-4">
+                        <h4 class="text-xl font-semibold mb-2">
+                            <%= chapters[i].title %>
+                        </h4>
+                        <div class="flex">
+                            <a href="/educators/courses/<%= courseId %>/chapters/<%= chapters[i].id %>/pages"
+                                class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md mr-2">View
+                                Pages</a>
+
+                            <form
+                                action="/educators/courses/<%= courseId %>/chapters/<%= chapters[i].id %>/pages/create"
+                                method="GET">
+                                <button class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md"
+                                    type="submit">Add Page</button>
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            </form>
+                        </div>
+                    </div>
+                    <% } %>
+        </div>
+        <%- include('footer.ejs') %>
+    </body>
+
+    </html>

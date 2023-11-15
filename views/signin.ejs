@@ -2,24 +2,35 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<%= csrfToken %>" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <title>Sign In</title>
 </head>
 
 <body>
     <%- include('header.ejs') %>
-    <h1>Sign In</h1>
-    <form method="post" action="/session">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <label for="email">Email:</label>
-        <input type="email" name="email" id="email" required><br><br>
+        <div class="w-full max-w-lg mx-auto mt-8 px-4 bg-white rounded-lg shadow-md">
+            <h1 class="text-3xl font-semibold mt-4 mb-4">Sign In</h1>
+            <form method="post" action="/session" class="space-y-4">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="password" required><br><br>
+                <label for="email" class="block">Email:</label>
+                <input type="email" name="email" id="email" required
+                    class="w-full border border-gray-300 rounded-md py-2 px-3">
 
-        <button type="submit">Sign In</button>
-    </form>
-    <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+                <label for="password" class="block">Password:</label>
+                <input type="password" name="password" id="password" required
+                    class="w-full border border-gray-300 rounded-md py-2 px-3">
+
+                <button type="submit"
+                    class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md w-full">Sign
+                    In</button>
+            </form>
+            <p class="mt-4 mb-4 text-sm">Don't have an account? <a href="/signup" class="text-blue-500">Sign Up</a></p>
+        </div>
+        <%- include('footer.ejs') %>
 </body>
 
 </html>

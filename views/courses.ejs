@@ -1,17 +1,43 @@
-<%- include('header.ejs') %>
-<h3>Courses</h3>
-<a href="/createcourse" class="text-blue-600 hover:underline mb-2">Create a Course</a>
-<% for(var i=0;i<allCourses.length;i++) { %>
-    <h4>
-        <%= educatorCourses[i].title %>
-    </h4>
-    <p>
-        <%= educatorCourses[i].description %>
-    </p>
-    <a href="/educators/courses/<%= educatorCourses[i].id %>/chapters" class="btn btn-primary">View Chapters</a>
-    <form action="/educators/courses/<%= educatorCourses[i].id %>/chapters/create" method="GET">
-        <button>Add Chapter</button>
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <input type="hidden" name="course_id" value="<%= educatorCourses[i].id %>">
-    </form>
-<% } %>
+<!DOCTYPE html>
+    <html lang="en">
+    
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="<%= csrfToken %>" />
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <title>Courses</title>
+    </head>
+    
+    <body>
+        <%- include('header.ejs') %>
+            <div class="p-6">
+                <h3 class="text-2xl font-semibold mb-4">Courses</h3>
+                <a href="/createcourse" class="text-blue-600 hover:underline mb-4">Create a Course</a>
+            
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <% for(var i=0; i < allCourses.length; i++) { %>
+                        <div class="bg-white rounded-md shadow-md p-4">
+                            <h4 class="text-lg font-semibold mb-2">
+                                <%= allCourses[i].title %>
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-4">
+                                <%= allCourses[i].description %>
+                            </p>
+                            <a href="/educators/courses/<%= allCourses[i].id %>/chapters"
+                                class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md mr-2">View Chapters</a>
+                            <form action="/educators/courses/<%= allCourses[i].id %>/chapters/create" method="GET"
+                                class="inline-block">
+                                <button class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md" type="submit">Add
+                                    Chapter</button>
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="hidden" name="course_id" value="<%= allCourses[i].id %>">
+                            </form>
+                        </div>
+                        <% } %>
+                </div>
+            </div>
+        <%- include('footer.ejs') %>
+    </body>
+    
+    </html>

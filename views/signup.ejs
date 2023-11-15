@@ -2,33 +2,44 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<%= csrfToken %>" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <title>Sign Up</title>
 </head>
 
 <body>
     <%- include('header.ejs') %>
-    <h1>Sign Up</h1>
-    <form method="post" action="/users">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <label for="name">Name:</label>
-        <input type="text" name="name" id="name" required><br><br>
+        <div class="w-full max-w-xl mx-auto mt-8 mb-8 px-4 bg-white rounded-lg shadow-md">
+            <h1 class="text-3xl font-semibold mt-4 mb-4">Sign Up</h1>
+            <form method="post" action="/users" class="space-y-4">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-        <label for="email">Email:</label>
-        <input type="email" name="email" id="email" required><br><br>
+                <label for="name" class="block">Name:</label>
+                <input type="text" name="name" id="name" required
+                    class="w-full border border-gray-300 rounded-md py-2 px-3">
 
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="password" required><br><br>
+                <label for="email" class="block">Email:</label>
+                <input type="email" name="email" id="email" required
+                    class="w-full border border-gray-300 rounded-md py-2 px-3">
 
-        <label for="role">Role:</label>
-        <select name="role" id="role" required>
-            <option value="student">Student</option>
-            <option value="educator">Educator</option>
-        </select><br><br>
+                <label for="password" class="block">Password:</label>
+                <input type="password" name="password" id="password" required
+                    class="w-full border border-gray-300 rounded-md py-2 px-3">
 
-        <button type="submit" value="submit">Sign Up</button>
-    </form>
-    <p>Already have an account? <a href="/login">Sign In</a></p>
+                <label for="role" class="block">Role:</label>
+                <select name="role" id="role" required class="w-full border border-gray-300 rounded-md py-2 px-3">
+                    <option value="student">Student</option>
+                    <option value="educator">Educator</option>
+                </select>
+
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md">Sign
+                    Up</button>
+            </form>
+            <p class="mt-4 mb-4 text-sm">Already have an account? <a href="/login" class="text-blue-500">Sign In</a></p>
+        </div>
+        <%- include('footer.ejs') %>
 </body>
 
 </html>
