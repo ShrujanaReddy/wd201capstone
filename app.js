@@ -389,11 +389,12 @@ app.get('/students/:courseId/chapters', connectEnsureLogin.ensureLoggedIn(), asy
         });
 
         // Fetch the total number of chapters in the course (for reference)
-        const totalChaptersCount = await Enrollment.count({
+        const totalChaptersCount = await Chapter.count({
             where: {
                 courseId: courseId,
             },
         });
+
 
         // Check if the user is enrolled in the course
         const userIsEnrolled = await Enrollment.findOne({
