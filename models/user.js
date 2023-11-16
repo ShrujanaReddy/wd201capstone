@@ -16,6 +16,16 @@ module.exports = (sequelize, DataTypes) => {
         as: 'createdCourses', 
       });
     }
+    static async changePassword({password,id}) {
+      return await this.update({
+        password:password},
+        {
+        where : {
+          id:id
+        }
+      }
+      )
+    }
   }
   User.init({
     name: DataTypes.STRING,

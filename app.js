@@ -438,6 +438,40 @@ app.get('/students/:courseId/chapters', connectEnsureLogin.ensureLoggedIn(), asy
     }
 });
 
+app.post('/changepassword',connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
+    try {
+        const studentId = req.user.id; 
+        const { currentPassword, newPassword, confirmNewPassword } = req.body;
+        const user = await User.findByPk(req.user.id);
+        const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isPasswordMatch) {
+            return res.status(401).send('Current password is incorrect');
+        }
+        if (newPassword !== confirmNewPassword) {
+            return res.status(400).send("New password and confirm password don't match");
+        }
+        if (!newPassword) {
+            return res.status(400).json({ error: 'New password is required' });
+        }
+        const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+        await User.changePassword({password:hashedNewPassword,id:studentId});
+        if(user.role==='educator')
+        res.redirect("/educator")
+        else if(user.role==='student')
+        res.redirect("/student")
+    } catch(err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
+app.get('/students/changePassword', (req, res) => {
+    res.render('changePassword',{csrfToken:req.csrfToken()})
+});
+
+app.get('/educator/changePassword', (req, res) => {
+    res.render('changePassword',{csrfToken:req.csrfToken()})
+});
 
 // View pages
 app.get('/students/:courseId/chapters/:chapterId/pages', connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
