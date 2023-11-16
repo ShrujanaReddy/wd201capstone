@@ -12,8 +12,10 @@
 
 <body class="bg-gray-100 p-8">
     <%- include('header.ejs') %>
+    <div class="flex justify-end p-4">
         <a href="students/changePassword" class="text-blue-600 hover:underline mb-2 mr-4">Change Password</a>
         <a href="/signout" class="text-blue-600 hover:underline mb-2">Sign out</a>
+    </div>
         <div class="mb-8">
             <h3 class="text-xl font-semibold mb-4">Enrolled Courses</h3>
             <% for (var i=0; i < enrolledCourses.length; i++) { %>
