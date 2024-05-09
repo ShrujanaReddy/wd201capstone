@@ -193,6 +193,9 @@ app.get("/educators/courses/:courseId/chapters/:chapterId/pages", connectEnsureL
 app.post("/educators/courses/create",connectEnsureLogin.ensureLoggedIn(),async (req, res) => {
     // Handle course creation here
     try {
+        if (req.user.role!='educator') {
+        return res.status(403).json({ error: "Only educators can create courses" });
+    }
         const course=await Course.createCourse({title:req.body.title,description:req.body.description,educator_id:req.user.id})
         res.redirect(`/educators/courses/${course.id}/chapters/create?course_id=${course.id}&educator_id=${req.user.id}`)
     } catch(error) {
